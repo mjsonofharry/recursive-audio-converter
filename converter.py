@@ -74,7 +74,8 @@ def main():
 
     test_ffmpeg(ffmpeg_binary_path=ffmpeg_binary_path)
 
-    os.makedirs(name=root_output_path, exist_ok=True)
+    if not dry_run:
+        os.makedirs(name=root_output_path, exist_ok=True)
 
     for step in os.walk(root_input_path):
         directory_path, subdirectory_names, file_names = step
