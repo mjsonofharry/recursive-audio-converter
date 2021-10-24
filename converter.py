@@ -39,12 +39,30 @@ def compute_output_path(
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-i", "--input", required=True, help="Input path")
-    parser.add_argument("-o", "--output", required=True, help="Output path")
-    parser.add_argument("-f", "--format", required=True, help="Output format")
-    parser.add_argument("-b", "--binary", required=True, help="FFmpeg path")
     parser.add_argument(
-        "-d", "--dry-run", required=False, help="Show a plan", action="store_true"
+        "-i", "--input", required=True, help="File system path to the input directory"
+    )
+    parser.add_argument(
+        "-o", "--output", required=True, help="File system path to the output directory"
+    )
+    parser.add_argument(
+        "-f",
+        "--format",
+        required=True,
+        help="File extension for conversion (run 'ffmpeg -formats' for a list of supported extensions)",
+    )
+    parser.add_argument(
+        "-b",
+        "--binary",
+        required=True,
+        help="File system path to FFmpeg executable (e.g. ffmpeg.exe)",
+    )
+    parser.add_argument(
+        "-d",
+        "--dry-run",
+        required=False,
+        help="Show a list of conversions without performing them",
+        action="store_true",
     )
     args = parser.parse_args()
 
