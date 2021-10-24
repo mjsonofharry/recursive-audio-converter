@@ -3,7 +3,7 @@ Simple script that uses FFmpeg to recursively convert audio files
 
 ## Setup
 
-- Get the latest version of [Python 3](https://www.python.org/)
+- Get the latest version of [Python 3](https://www.python.org/) (also available on the [Windows Store](https://www.microsoft.com/en-us/p/python-39/9p7qfqmjrfp7))
 - Get [FFmpeg](https://www.ffmpeg.org/) and put the executable somewhere on your system
 - Refer to the usage instructions below
 
