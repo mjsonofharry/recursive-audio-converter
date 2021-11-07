@@ -36,8 +36,8 @@ class Ffmpeg:
     def test(self) -> None:
         self.__exec("--help")
 
-    def convert(self, input_path: str, output_path: str) -> None:
-        self.__exec("-i", input_path, output_path)
+    def convert(self, input_path: str, output_path: str, extra_args: List[str]) -> None:
+        self.__exec("-i", input_path, output_path, *extra_args)
 
 
 @dataclass(frozen=True)
@@ -47,6 +47,7 @@ class Converter:
     input_format: str
     output_format: str
     ffmpeg: Ffmpeg
+    extra_args: List[str]
     strategy: Strategy
     dry_run: bool
 
@@ -78,6 +79,7 @@ class Converter:
                 return True
             else:
                 return yes_no_prompt("Overwrite?")
+        return True
 
     def process_file(self, directory_path: str, file_name: str):
         if not file_name.endswith(f".{self.input_format}"):
@@ -94,10 +96,10 @@ class Converter:
             assert not self.dry_run
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
             if os.path.exists(output_file_path):
-                assert not self.strategy not in [Strategy.SKIP, Strategy.ABORT]
+                assert self.strategy not in [Strategy.SKIP, Strategy.ABORT]
                 os.remove(output_file_path)
             self.ffmpeg.convert(
-                input_path=input_file_path, output_path=output_file_path
+                input_path=input_file_path, output_path=output_file_path, extra_args=self.extra_args
             )
 
     def process_folder(self, directory_path: str, file_names: List[str]):
@@ -138,6 +140,12 @@ if __name__ == "__main__":
         help="File system path to FFmpeg executable, e.g. 'Downloads\\ffmpeg.exe'",
     )
     parser.add_argument(
+        "--extra-args",
+        required=False,
+        default="",
+        help="Extra arguments to pass to FFmpeg",
+    )
+    parser.add_argument(
         "--strategy",
         choices=[
             Strategy.ABORT.value,
@@ -162,6 +170,7 @@ if __name__ == "__main__":
         input_format=args.input_format,
         output_format=args.output_format,
         ffmpeg=Ffmpeg(binary_path=args.binary),
+        extra_args=args.extra_args.split(" "),
         strategy=Strategy(args.strategy),
         dry_run=args.dry_run,
     )
