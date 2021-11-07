@@ -24,3 +24,16 @@ optional arguments:
   --strategy {abort,skip,overwrite,ask}
   --dry-run             Show a list of planned conversions without performing them
 ```
+
+## Example
+
+```
+python .\converter.py `
+  --input .\data\input\ `
+  --output .\data\output\ `
+  --input-format flac `
+  --output-format mp3 `
+  --binary .\lib\bin\ffmpeg.exe `
+  --strategy overwrite `
+  --extra-args "-ab 320k -map_metadata 0 -id3v2_version 3"
+```
