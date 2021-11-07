@@ -1,8 +1,25 @@
 from argparse import ArgumentParser
+from enum import Enum
 from dataclasses import dataclass
 import os
 import subprocess
 from typing import List
+
+
+class Strategy(Enum):
+    ABORT = "abort"
+    SKIP = "skip"
+    OVERWRITE = "overwrite"
+    ASK = "ask"
+
+
+def yes_no_prompt(message: str) -> bool:
+    while True:
+        response = input(f"{message} [y/n] ")
+        if response.lower() == "y":
+            return True
+        elif response.lower() == "n":
+            return False
 
 
 class Ffmpeg:
@@ -27,29 +44,53 @@ class Ffmpeg:
 class Converter:
     root_input_path: str
     root_output_path: str
-    output_extension: str
-    dry_run: bool
+    input_format: str
+    output_format: str
     ffmpeg: Ffmpeg
+    strategy: Strategy
+    dry_run: bool
 
     def compute_output_path(self, input_file_path: str) -> str:
         relative_file_path = os.path.relpath(
             path=input_file_path, start=self.root_input_path
         )
         output_file_path = os.path.join(self.root_output_path, relative_file_path)
-        return f"{os.path.splitext(output_file_path)[0]}.{self.output_extension}"
+        return f"{os.path.splitext(output_file_path)[0]}.{self.output_format}"
+
+    def should_convert(self, input_file_path: str, output_file_path: str):
+        if self.dry_run:
+            return False
+        if not os.path.exists(input_file_path):
+            return False
+        if not input_file_path.endswith(f".{self.input_format}"):
+            return False
+        if os.path.exists(output_file_path):
+            if self.strategy == Strategy.ABORT:
+                raise RuntimeError(f"   Result: Refusing to overwrite, aborting")
+            elif self.strategy == Strategy.SKIP:
+                print(f"   Result: Refusing to overwrite, skipping")
+                return False
+            elif self.strategy == Strategy.OVERWRITE:
+                print("   Result: overwriting output file")
+                return True
+            else:
+                return yes_no_prompt("Overwrite?")
 
     def process_file(self, directory_path: str, file_name: str):
+        if not file_name.endswith(f".{self.input_format}"):
+            return
         input_file_path: str = os.path.join(directory_path, file_name)
         output_file_path: str = self.compute_output_path(
             input_file_path=input_file_path
         )
-        would_overwrite = os.path.exists(output_file_path)
         print(f" - Input:  {input_file_path}")
-        print(f" {' !' if would_overwrite else ' '} Output: {output_file_path}")
-        if not self.dry_run:
+        print(f"   Output: {output_file_path}")
+        if self.should_convert(
+            input_file_path=input_file_path, output_file_path=output_file_path
+        ):
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-            if would_overwrite:
-                raise RuntimeError(f"Refusing to overwrite: '{output_file_path}'")
+            if os.path.exists(output_file_path):
+                os.remove(output_file_path)
             self.ffmpeg.convert(
                 input_path=input_file_path, output_path=output_file_path
             )
@@ -71,28 +112,41 @@ class Converter:
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
-        "-i", "--input", required=True, help="File system path to the input directory"
+        "--input", required=True, help="File system path to the input directory"
     )
     parser.add_argument(
-        "-o", "--output", required=True, help="File system path to the output directory"
+        "--output", required=True, help="File system path to the output directory"
     )
     parser.add_argument(
-        "-f",
-        "--format",
+        "--input-format",
         required=True,
-        help="File extension for conversion (run 'ffmpeg -formats' for a list of supported extensions)",
+        help="Input file format, e.g. 'flac' (run 'ffmpeg -formats' for a list of supported extensions)",
     )
     parser.add_argument(
-        "-b",
+        "--output-format",
+        required=True,
+        help="Output file format, e.g. 'mp3' (run 'ffmpeg -formats' for a list of supported extensions)",
+    )
+    parser.add_argument(
         "--binary",
         required=True,
-        help="File system path to FFmpeg executable (e.g. ffmpeg.exe)",
+        help="File system path to FFmpeg executable, e.g. 'Downloads\\ffmpeg.exe'",
     )
     parser.add_argument(
-        "-d",
+        "--strategy",
+        choices=[
+            Strategy.ABORT.value,
+            Strategy.SKIP.value,
+            Strategy.OVERWRITE.value,
+            Strategy.ASK.value,
+        ],
+        required=True,
+        help="",
+    )
+    parser.add_argument(
         "--dry-run",
         required=False,
-        help="Show a list of conversions without performing them",
+        help="Show a list of planned conversions without performing them",
         action="store_true",
     )
     args = parser.parse_args()
@@ -100,8 +154,10 @@ if __name__ == "__main__":
     converter = Converter(
         root_input_path=os.path.abspath(args.input),
         root_output_path=os.path.abspath(args.output),
-        output_format=args.format,
+        input_format=args.input_format,
+        output_format=args.output_format,
+        ffmpeg=Ffmpeg(binary_path=args.binary),
+        strategy=Strategy(args.strategy),
         dry_run=args.dry_run,
-        fmpeg=Ffmpeg(binary_path=args.binary),
     )
     converter.run()
