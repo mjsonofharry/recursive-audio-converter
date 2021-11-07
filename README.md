@@ -10,17 +10,17 @@ Simple script that uses FFmpeg to recursively convert audio files
 ## Usage
 
 ```
-usage: converter.py [-h] -i INPUT -o OUTPUT -f FORMAT -b BINARY [-d]
+usage: converter.py [-h] --input INPUT --output OUTPUT --input-format INPUT_FORMAT --output-format OUTPUT_FORMAT --binary BINARY --strategy {abort,skip,overwrite,ask} [--dry-run]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i INPUT, --input INPUT
-                        File system path to the input directory
-  -o OUTPUT, --output OUTPUT
-                        File system path to the output directory
-  -f FORMAT, --format FORMAT
-                        File extension for conversion (run 'ffmpeg -formats' for a list of supported extensions)
-  -b BINARY, --binary BINARY
-                        File system path to FFmpeg executable (e.g. ffmpeg.exe)
-  -d, --dry-run         Show a list of conversions without performing them
+  --input INPUT         File system path to the input directory
+  --output OUTPUT       File system path to the output directory
+  --input-format INPUT_FORMAT
+                        Input file format, e.g. 'flac' (run 'ffmpeg -formats' for a list of supported extensions)
+  --output-format OUTPUT_FORMAT
+                        Output file format, e.g. 'mp3' (run 'ffmpeg -formats' for a list of supported extensions)
+  --binary BINARY       File system path to FFmpeg executable, e.g. 'Downloads\ffmpeg.exe'
+  --strategy {abort,skip,overwrite,ask}
+  --dry-run             Show a list of planned conversions without performing them
 ```
