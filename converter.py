@@ -15,7 +15,7 @@ class Strategy(Enum):
 
 def yes_no_prompt(message: str) -> bool:
     while True:
-        response = input(f"{message} [y/n] ")
+        response: str = input(f"{message} [y/n] ")
         if response.lower() == "y":
             return True
         elif response.lower() == "n":
@@ -59,10 +59,13 @@ class Converter:
 
     def should_convert(self, input_file_path: str, output_file_path: str):
         if self.dry_run:
+            print("   Result: Dry run, no actions allowed")
             return False
         if not os.path.exists(input_file_path):
+            print("   WARNING: Input file does not exist")
             return False
         if not input_file_path.endswith(f".{self.input_format}"):
+            print("   WARNING: Input file has wrong extension")
             return False
         if os.path.exists(output_file_path):
             if self.strategy == Strategy.ABORT:
@@ -88,8 +91,10 @@ class Converter:
         if self.should_convert(
             input_file_path=input_file_path, output_file_path=output_file_path
         ):
+            assert not self.dry_run
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
             if os.path.exists(output_file_path):
+                assert not self.strategy not in [Strategy.SKIP, Strategy.ABORT]
                 os.remove(output_file_path)
             self.ffmpeg.convert(
                 input_path=input_file_path, output_path=output_file_path
