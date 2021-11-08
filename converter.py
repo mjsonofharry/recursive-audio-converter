@@ -37,7 +37,7 @@ class Ffmpeg:
         self.__exec("--help")
 
     def convert(self, input_path: str, output_path: str, extra_args: List[str]) -> None:
-        self.__exec("-i", input_path, output_path, *extra_args)
+        self.__exec("-i", input_path, *extra_args, output_path)
 
 
 @dataclass(frozen=True)
