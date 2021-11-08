@@ -1,5 +1,6 @@
 # recursive-audio-converter
-Simple script that uses FFmpeg to recursively convert audio files
+
+This is a simple script that uses FFmpeg to recursively convert audio files. Give it the location of a music library along with a destination, and it will create a full mirror of that music library, preserving the folder structure.
 
 ## Setup
 
